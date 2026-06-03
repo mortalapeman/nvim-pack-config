@@ -51,6 +51,7 @@ vim.api.nvim_create_autocmd({'BufEnter', 'BufWinEnter'}, {
 local gh = function(relurl)
   return { src = "https://github.com/" .. relurl }
 end
+local packdir = vim.fn.stdpath('data') .. "/site/pack/core/opt/"
 
 vim.pack.add({gh('lewis6991/gitsigns.nvim')})
 require('gitsigns').setup({
@@ -111,3 +112,100 @@ vim.api.nvim_create_autocmd({'VimEnter'}, {
     })
   end
 })
+
+-- Telescope dependencies
+vim.pack.add({
+  gh('nvim-lua/plenary.nvim'),
+  gh('nvim-telescope/telescope-fzf-native.nvim'),
+  gh('nvim-telescope/telescope-ui-select.nvim'),
+  gh('nvim-tree/nvim-web-devicons')
+})
+
+local success, _ = pcall(function()
+  local repo = packdir .. 'telescope-fzf-native.nvim/'
+  local stat = vim.uv.fs_stat(repo .. '.built')
+  if stat == nil then
+    local obj = vim.system({'make'}, { cwd = repo }):wait()
+    if obj.code ~= 0 then
+      vim.notify("Failed to run make in " .. repo , vim.log.levels.ERROR)
+    else
+      vim.notify("Built telescope-fzf-native.nvim!", vim.log.levels.INFO)
+      vim.system({'touch', '.built'}, { cwd = repo }):wait()
+    end
+  else
+    vim.notify("Skipping build", vim.log.levels.INFO)
+  end
+end)
+
+if not success then
+  vim.notify("Failed to build telescope-fzf-native.nvim", vim.log.levels.INFO)
+end
+
+vim.pack.add({
+  gh('nvim-telescope/telescope.nvim')
+})
+
+vim.api.nvim_create_autocmd({'VimEnter'}, {
+  desc = 'Startup for telescope',
+  callback = function()
+    require('telescope').setup {
+        defaults = {
+          file_ignore_patterns = {
+            '^.git/',
+            '/.git/',
+            '^deps/',
+            '/deps/',
+          },
+        },
+        extensions = {
+          ['ui-select'] = {
+            require('telescope.themes').get_dropdown(),
+          },
+        },
+    }
+    pcall(require('telescope').load_extension, 'fzf')
+    pcall(require('telescope').load_extension, 'ui-select')
+
+    -- See `:help telescope.builtin`
+    local builtin = require 'telescope.builtin'
+    vim.keymap.set('n', '<leader>sh', builtin.help_tags, { desc = '[S]earch [H]elp' })
+    vim.keymap.set('n', '<leader>sk', builtin.keymaps, { desc = '[S]earch [K]eymaps' })
+    vim.keymap.set('n', '<leader>sf', builtin.find_files, { desc = '[S]earch [F]iles' })
+    vim.keymap.set('n', '<leader>ss', builtin.builtin, { desc = '[S]earch [S]elect Telescope' })
+    vim.keymap.set('n', '<leader>sc', builtin.commands, { desc = '[S]earch [C]ommands Telescope' })
+    vim.keymap.set('n', '<leader>sw', builtin.grep_string, { desc = '[S]earch current [W]ord' })
+    vim.keymap.set('n', '<leader>sg', builtin.live_grep, { desc = '[S]earch by [G]rep' })
+    vim.keymap.set('n', '<leader>sd', builtin.diagnostics, { desc = '[S]earch [D]iagnostics' })
+    vim.keymap.set('n', '<leader>sr', builtin.resume, { desc = '[S]earch [R]esume' })
+    vim.keymap.set('n', '<leader>s.', builtin.oldfiles, { desc = '[S]earch Recent Files ("." for repeat)' })
+    vim.keymap.set('n', '<leader>sy', builtin.lsp_document_symbols, { desc = '[S]earch document symbols' })
+    vim.keymap.set('n', '<leader><leader>', builtin.buffers, { desc = '[ ] Find existing buffers' })
+
+    -- Slightly advanced example of overriding default behavior and theme
+    vim.keymap.set('n', '<leader>/', function()
+      -- You can pass additional configuration to Telescope to change the theme, layout, etc.
+      builtin.current_buffer_fuzzy_find(require('telescope.themes').get_dropdown {
+        winblend = 10,
+        previewer = false,
+      })
+    end, { desc = '[/] Fuzzily search in current buffer' })
+
+    -- It's also possible to pass additional configuration options.
+    --  See `:help telescope.builtin.live_grep()` for information about particular keys
+    vim.keymap.set('n', '<leader>s/', function()
+      builtin.live_grep {
+        grep_open_files = true,
+        prompt_title = 'Live Grep in Open Files',
+      }
+    end, { desc = '[S]earch [/] in Open Files' })
+
+    -- Shortcut for searching your Neovim configuration files
+    vim.keymap.set('n', '<leader>sn', function()
+      builtin.find_files { cwd = vim.fn.stdpath 'config' }
+    end, { desc = '[S]earch [N]eovim files' })
+  end
+})
+
+
+
+-- we need to figure out how to all the build function reliably given a package name.

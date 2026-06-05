@@ -22,6 +22,7 @@ vim.o.inccommand = "split"
 vim.o.cursorline = true
 vim.o.scrolloff = 10
 vim.o.confirm = true
+vim.o.wrap = false
 
 vim.keymap.set("n", "<Esc>", "<cmd>nohlsearch<CR>")
 vim.keymap.set("n", "<leader>q", vim.diagnostic.setloclist, { desc = "Open diagnostic [Q]uickfix list" })
@@ -52,6 +53,19 @@ local gh = function(relurl)
   return { src = "https://github.com/" .. relurl }
 end
 local packdir = vim.fn.stdpath("data") .. "/site/pack/core/opt/"
+
+vim.pack.add({ gh("folke/tokyonight.nvim") })
+local success, result = pcall(require, "tokyonight")
+if success then
+  result.setup({
+    styles = {
+      comments = { italic = false }, -- Disable italics in comments
+    },
+  })
+  vim.cmd.colorscheme("tokyonight-night")
+else
+  vim.notify("Failed to setup mason", vim.log.levels.ERROR)
+end
 
 vim.pack.add({ gh("lewis6991/gitsigns.nvim") })
 require("gitsigns").setup({
@@ -326,11 +340,7 @@ vim.pack.add({ gh("neovim/nvim-lspconfig") }, {
   end,
 })
 
-vim.pack.add({
-  gh("mason-org/mason.nvim"),
-  -- gh('WhoIsSethDaniel/mason-tool-installer.nvim'),
-  -- gh('j-hui/fidget.nvim'),
-})
+vim.pack.add({ gh("mason-org/mason.nvim") })
 local success, result = pcall(require, "mason")
 if success then
   result.setup()
@@ -432,7 +442,7 @@ end
 
 vim.pack.add({ gh("nvim-mini/mini.nvim") })
 vim.api.nvim_create_autocmd({ "VimEnter" }, {
-  desc = "Configure 'Which-Key' on VimEnter",
+  desc = "Configure the mini library.",
   callback = function()
     require("mini.ai").setup({ n_lines = 500 })
     require("mini.surround").setup()

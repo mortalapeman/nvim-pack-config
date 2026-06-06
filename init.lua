@@ -30,6 +30,7 @@ vim.keymap.set("n", "<C-h>", "<C-w><C-h>", { desc = "Move focus to the left wind
 vim.keymap.set("n", "<C-l>", "<C-w><C-l>", { desc = "Move focus to the right window" })
 vim.keymap.set("n", "<C-j>", "<C-w><C-j>", { desc = "Move focus to the lower window" })
 vim.keymap.set("n", "<C-k>", "<C-w><C-k>", { desc = "Move focus to the upper window" })
+vim.keymap.set("n", "\\", ":Neotree<CR>", { desc = "Open Neotree pane." })
 
 vim.api.nvim_create_autocmd("TextYankPost", {
   desc = "Highlight when yanking (copying) text",
@@ -507,4 +508,27 @@ if success then
   })
 else
   vim.notify("Failed to setup blink.cmp", vim.log.levels.ERROR)
+end
+
+vim.pack.add({
+  {
+    src = "https://github.com/nvim-neo-tree/neo-tree.nvim",
+    version = vim.version.range("3"),
+  },
+  "https://github.com/MunifTanjim/nui.nvim",
+  "https://github.com/nvim-tree/nvim-web-devicons",
+})
+success, result = pcall(require, "neo-tree")
+if success then
+  result.setup({
+    filesystem = {
+      window = {
+        mappings = {
+          ["\\"] = "close_window",
+        },
+      },
+    },
+  })
+else
+  vim.notify("Failed to setup neo-tree", vim.log.levels.ERROR)
 end

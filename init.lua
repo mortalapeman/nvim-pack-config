@@ -66,19 +66,24 @@ if success then
   })
   vim.cmd.colorscheme("tokyonight-night")
 else
-  vim.notify("Failed to setup mason", vim.log.levels.ERROR)
+  vim.notify("Failed to setup tokyonight-night", vim.log.levels.ERROR)
 end
 
 vim.pack.add({ gh("lewis6991/gitsigns.nvim") })
-require("gitsigns").setup({
-  signs = {
-    add = { text = "+" },
-    change = { text = "~" },
-    delete = { text = "_" },
-    topdelete = { text = "‾" },
-    changedelete = { text = "~" },
-  },
-})
+success, result = pcall(require, "gitsigns")
+if success then
+  result.setup({
+    signs = {
+      add = { text = "+" },
+      change = { text = "~" },
+      delete = { text = "_" },
+      topdelete = { text = "‾" },
+      changedelete = { text = "~" },
+    },
+  })
+else
+  vim.notify("Failed to setup gitsigns", vim.log.levels.ERROR)
+end
 
 vim.pack.add({ gh("folke/which-key.nvim") })
 vim.api.nvim_create_autocmd({ "VimEnter" }, {
@@ -137,7 +142,7 @@ vim.pack.add({
   gh("nvim-tree/nvim-web-devicons"),
 })
 
-local success, _ = pcall(function()
+success, _ = pcall(function()
   local repo = packdir .. "telescope-fzf-native.nvim/"
   local stat = vim.uv.fs_stat(repo .. ".built")
   if stat == nil then
@@ -220,7 +225,7 @@ vim.api.nvim_create_autocmd({ "VimEnter" }, {
   end,
 })
 
-vim.pack.add({ gh("neovim/nvim-lspconfig") }, {})
+vim.pack.add({ gh("neovim/nvim-lspconfig") })
 vim.api.nvim_create_autocmd("LspAttach", {
   group = vim.api.nvim_create_augroup("lsp-attach", { clear = true }),
   callback = function(event)
@@ -265,19 +270,6 @@ vim.api.nvim_create_autocmd("LspAttach", {
     --  Useful when you're not sure what type a variable is and you want to see
     --  the definition of its *type*, not where it was *defined*.
     map("grt", require("telescope.builtin").lsp_type_definitions, "[G]oto [T]ype Definition")
-
-    -- This function resolves a difference between neovim nightly (version 0.11) and stable (version 0.10)
-    ---@param client vim.lsp.Client
-    ---@param method vim.lsp.protocol.Method
-    ---@param bufnr? integer some lsp support methods only in specific files
-    ---@return boolean
-    local function client_supports_method(client, method, bufnr)
-      if vim.fn.has("nvim-0.11") == 1 then
-        return client:supports_method(method, bufnr)
-      else
-        return client.supports_method(method, { bufnr = bufnr })
-      end
-    end
 
     -- The following two autocommands are used to highlight references of the
     -- word under your cursor when your cursor rests there for a little while.
@@ -350,7 +342,7 @@ vim.diagnostic.config({
 })
 
 vim.pack.add({ gh("mason-org/mason.nvim") })
-local success, result = pcall(require, "mason")
+success, result = pcall(require, "mason")
 if success then
   result.setup()
 else
@@ -375,7 +367,7 @@ local servers = {
     },
   },
 }
-local success, result = pcall(require, "mason-lspconfig")
+success, result = pcall(require, "mason-lspconfig")
 if success then
   result.setup({
     ensure_installed = {}, -- explicitly set to an empty table (Kickstart populates installs via mason-tool-installer)
@@ -399,7 +391,7 @@ end
 vim.pack.add({
   gh("WhoIsSethDaniel/mason-tool-installer.nvim"),
 })
-success, result = pcall(require, "mason-lspconfig")
+success, result = pcall(require, "mason-tool-installer")
 if success then
   local ensure_installed = vim.tbl_keys(servers or {})
   vim.list_extend(ensure_installed, {
@@ -408,7 +400,7 @@ if success then
   })
   result.setup({ ensure_installed = ensure_installed })
 else
-  vim.notify("Failed to setup mason-lspconfig", vim.log.levels.ERROR)
+  vim.notify("Failed to setup mason-tool-installer", vim.log.levels.ERROR)
 end
 
 vim.pack.add({ gh("j-hui/fidget.nvim") })
@@ -475,9 +467,9 @@ vim.pack.add({ gh("folke/lazydev.nvim") })
 vim.api.nvim_create_autocmd({ "FileType" }, {
   pattern = "lua",
   callback = function()
-    local success, require_lazydev = pcall(require, "lazydev")
+    success, result = pcall(require, "lazydev")
     if success then
-      require_lazydev.setup({
+      result.setup({
         library = {
           -- Load luvit types when the `vim.uv` word is found
           { path = "${3rd}/luv/library", words = { "vim%.uv" } },
@@ -488,7 +480,7 @@ vim.api.nvim_create_autocmd({ "FileType" }, {
 })
 
 vim.pack.add({ { src = "https://github.com/saghen/blink.cmp", version = "v1.5.0" } })
-local success, result = pcall(require, "blink.cmp")
+success, result = pcall(require, "blink.cmp")
 if success then
   result.setup({
     keymap = {

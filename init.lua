@@ -371,7 +371,7 @@ local servers = {
 success, result = pcall(require, "mason-lspconfig")
 if success then
   result.setup({
-    ensure_installed = {}, -- explicitly set to an empty table (Kickstart populates installs via mason-tool-installer)
+    ensure_installed = {}, -- explicitly set to an empty table (populates installs via mason-tool-installer)
     automatic_installation = false,
     handlers = {
       function(server_name)

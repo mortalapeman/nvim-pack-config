@@ -549,3 +549,9 @@ if success then
 else
   vim.notify("Failed to setup tree-sitter-manager", vim.log.levels.ERROR)
 end
+
+-- Add custom pulgins by modifying the runtime path.
+local nvimeap_path = vim.fn.expand("~/code/nvimeap")
+if vim.fn.isdirectory(nvimeap_path) then
+  vim.opt.runtimepath:prepend(nvimeap_path)
+end

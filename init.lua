@@ -30,7 +30,8 @@ vim.keymap.set("n", "<C-h>", "<C-w><C-h>", { desc = "Move focus to the left wind
 vim.keymap.set("n", "<C-l>", "<C-w><C-l>", { desc = "Move focus to the right window" })
 vim.keymap.set("n", "<C-j>", "<C-w><C-j>", { desc = "Move focus to the lower window" })
 vim.keymap.set("n", "<C-k>", "<C-w><C-k>", { desc = "Move focus to the upper window" })
-vim.keymap.set("n", "\\", ":Neotree<CR>", { desc = "Open Neotree pane." })
+vim.keymap.set("n", "\\", ":Neotree<CR>", { desc = "Open Neotree pane" })
+vim.keymap.set("", "<leader>ps", ":ProjectSelect<CR>", { desc = "Open [P]roject [S]elect" })
 
 vim.api.nvim_create_autocmd("TextYankPost", {
   desc = "Highlight when yanking (copying) text",
@@ -55,9 +56,17 @@ local gh = function(relurl)
 end
 local packdir = vim.fn.stdpath("data") .. "/site/pack/core/opt/"
 
+local safe_setup = function(plugin, setup_fn, error_name)
+  local success, result = pcall(require, plugin)
+  if success then
+    setup_fn(result)
+  else
+    vim.notify("Failed to setup " .. (error_name or plugin), vim.log.levels.ERROR)
+  end
+end
+
 vim.pack.add({ gh("folke/tokyonight.nvim") })
-local success, result = pcall(require, "tokyonight")
-if success then
+safe_setup("tokyonight", function(result)
   result.setup({
     on_colors = function() end,
     on_highlights = function() end,
@@ -66,13 +75,10 @@ if success then
     },
   })
   vim.cmd.colorscheme("tokyonight-night")
-else
-  vim.notify("Failed to setup tokyonight-night", vim.log.levels.ERROR)
-end
+end, "tokyonight-night")
 
 vim.pack.add({ gh("lewis6991/gitsigns.nvim") })
-success, result = pcall(require, "gitsigns")
-if success then
+safe_setup("gitsigns", function(result)
   result.setup({
     signs = {
       add = { text = "+" },
@@ -82,9 +88,7 @@ if success then
       changedelete = { text = "~" },
     },
   })
-else
-  vim.notify("Failed to setup gitsigns", vim.log.levels.ERROR)
-end
+end)
 
 vim.pack.add({ gh("folke/which-key.nvim") })
 vim.api.nvim_create_autocmd({ "VimEnter" }, {
@@ -143,7 +147,7 @@ vim.pack.add({
   gh("nvim-tree/nvim-web-devicons"),
 })
 
-success, _ = pcall(function()
+local success, _ = pcall(function()
   local repo = packdir .. "telescope-fzf-native.nvim/"
   local stat = vim.uv.fs_stat(repo .. ".built")
   if stat == nil then
@@ -343,12 +347,9 @@ vim.diagnostic.config({
 })
 
 vim.pack.add({ gh("mason-org/mason.nvim") })
-success, result = pcall(require, "mason")
-if success then
+safe_setup("mason", function(result)
   result.setup()
-else
-  vim.notify("Failed to setup mason", vim.log.levels.ERROR)
-end
+end)
 
 vim.pack.add({ gh("mason-org/mason-lspconfig.nvim") })
 local servers = {
@@ -368,8 +369,7 @@ local servers = {
     },
   },
 }
-success, result = pcall(require, "mason-lspconfig")
-if success then
+safe_setup("mason-lspconfig", function(result)
   result.setup({
     ensure_installed = {}, -- explicitly set to an empty table (populates installs via mason-tool-installer)
     automatic_installation = false,
@@ -385,36 +385,27 @@ if success then
       end,
     },
   })
-else
-  vim.notify("Failed to setup mason-lspconfig", vim.log.levels.ERROR)
-end
+end)
 
 vim.pack.add({
   gh("WhoIsSethDaniel/mason-tool-installer.nvim"),
 })
-success, result = pcall(require, "mason-tool-installer")
-if success then
+safe_setup("mason-tool-installer", function(result)
   local ensure_installed = vim.tbl_keys(servers or {})
   vim.list_extend(ensure_installed, {
     "stylua", -- Used to format Lua code
     "copilot",
   })
   result.setup({ ensure_installed = ensure_installed })
-else
-  vim.notify("Failed to setup mason-tool-installer", vim.log.levels.ERROR)
-end
+end)
 
 vim.pack.add({ gh("j-hui/fidget.nvim") })
-success, result = pcall(require, "fidget")
-if success then
+safe_setup("fidget", function(result)
   result.setup({})
-else
-  vim.notify("Failed to setup fidget", vim.log.levels.ERROR)
-end
+end)
 
 vim.pack.add({ gh("stevearc/conform.nvim") })
-success, result = pcall(require, "conform")
-if success then
+safe_setup("conform", function(result)
   result.setup({
     notify_on_error = false,
     format_on_save = function(bufnr)
@@ -439,9 +430,7 @@ if success then
     result.format({ async = true, lsp_format = "fallback" })
   end
   vim.keymap.set("", "<leader>f", format_code, { desc = "[F]ormat buffer" })
-else
-  vim.notify("Failed to setup conform", vim.log.levels.ERROR)
-end
+end)
 
 vim.pack.add({ gh("nvim-mini/mini.nvim") })
 vim.api.nvim_create_autocmd({ "VimEnter" }, {
@@ -481,8 +470,7 @@ vim.api.nvim_create_autocmd({ "FileType" }, {
 })
 
 vim.pack.add({ { src = "https://github.com/saghen/blink.cmp", version = "v1.5.0" } })
-success, result = pcall(require, "blink.cmp")
-if success then
+safe_setup("blink.cmp", function(result)
   result.setup({
     keymap = {
       preset = "default",
@@ -506,9 +494,7 @@ if success then
     fuzzy = { implementation = "lua" },
     signature = { enabled = true },
   })
-else
-  vim.notify("Failed to setup blink.cmp", vim.log.levels.ERROR)
-end
+end)
 
 vim.pack.add({
   {
@@ -518,8 +504,7 @@ vim.pack.add({
   "https://github.com/MunifTanjim/nui.nvim",
   "https://github.com/nvim-tree/nvim-web-devicons",
 })
-success, result = pcall(require, "neo-tree")
-if success then
+safe_setup("neo-tree", function(result)
   result.setup({
     filesystem = {
       window = {
@@ -529,15 +514,12 @@ if success then
       },
     },
   })
-else
-  vim.notify("Failed to setup neo-tree", vim.log.levels.ERROR)
-end
+end)
 
 vim.pack.add({
   { src = "https://github.com/romus204/tree-sitter-manager.nvim" },
 })
-success, result = pcall(require, "tree-sitter-manager")
-if success then
+safe_setup("tree-sitter-manager", function(result)
   result.setup({
     -- Default Options
     ensure_installed = { "python", "typescript", "sql", "scss", "css", "html" }, -- list of parsers to install at the start of a neovim session. If set to "all", install all parsers.
@@ -546,12 +528,12 @@ if success then
     highlight = true, -- treesitter highlighting is enabled by default
     -- languages = {}, -- override or add new parser sources
   })
-else
-  vim.notify("Failed to setup tree-sitter-manager", vim.log.levels.ERROR)
-end
+end)
 
 -- Add custom pulgins by modifying the runtime path.
 local nvimeap_path = vim.fn.expand("~/code/nvimeap")
 if vim.fn.isdirectory(nvimeap_path) then
   vim.opt.runtimepath:prepend(nvimeap_path)
+
+  vim.keymap.set("", "<leader>ps", ":ProjectSelect<CR>", { desc = "Open [P]roject [S]elect" })
 end

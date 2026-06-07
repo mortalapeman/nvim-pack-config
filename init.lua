@@ -56,18 +56,18 @@ local gh = function(relurl)
 end
 local packdir = vim.fn.stdpath("data") .. "/site/pack/core/opt/"
 
-local safe_setup = function(plugin, setup_fn, error_name)
-  local success, result = pcall(require, plugin)
+local safe_setup = function(name, setup_fn, error_name)
+  local success, plugin = pcall(require, name)
   if success then
-    setup_fn(result)
+    setup_fn(plugin)
   else
-    vim.notify("Failed to setup " .. (error_name or plugin), vim.log.levels.ERROR)
+    vim.notify("Failed to setup " .. (error_name or name), vim.log.levels.ERROR)
   end
 end
 
 vim.pack.add({ gh("folke/tokyonight.nvim") })
-safe_setup("tokyonight", function(result)
-  result.setup({
+safe_setup("tokyonight", function(plugin)
+  plugin.setup({
     on_colors = function() end,
     on_highlights = function() end,
     styles = {
@@ -78,8 +78,8 @@ safe_setup("tokyonight", function(result)
 end, "tokyonight-night")
 
 vim.pack.add({ gh("lewis6991/gitsigns.nvim") })
-safe_setup("gitsigns", function(result)
-  result.setup({
+safe_setup("gitsigns", function(plugin)
+  plugin.setup({
     signs = {
       add = { text = "+" },
       change = { text = "~" },
@@ -347,8 +347,8 @@ vim.diagnostic.config({
 })
 
 vim.pack.add({ gh("mason-org/mason.nvim") })
-safe_setup("mason", function(result)
-  result.setup()
+safe_setup("mason", function(plugin)
+  plugin.setup()
 end)
 
 vim.pack.add({ gh("mason-org/mason-lspconfig.nvim") })
@@ -369,8 +369,8 @@ local servers = {
     },
   },
 }
-safe_setup("mason-lspconfig", function(result)
-  result.setup({
+safe_setup("mason-lspconfig", function(plugin)
+  plugin.setup({
     ensure_installed = {}, -- explicitly set to an empty table (populates installs via mason-tool-installer)
     automatic_installation = false,
     handlers = {
@@ -390,23 +390,23 @@ end)
 vim.pack.add({
   gh("WhoIsSethDaniel/mason-tool-installer.nvim"),
 })
-safe_setup("mason-tool-installer", function(result)
+safe_setup("mason-tool-installer", function(plugin)
   local ensure_installed = vim.tbl_keys(servers or {})
   vim.list_extend(ensure_installed, {
     "stylua", -- Used to format Lua code
     "copilot",
   })
-  result.setup({ ensure_installed = ensure_installed })
+  plugin.setup({ ensure_installed = ensure_installed })
 end)
 
 vim.pack.add({ gh("j-hui/fidget.nvim") })
-safe_setup("fidget", function(result)
-  result.setup({})
+safe_setup("fidget", function(plugin)
+  plugin.setup({})
 end)
 
 vim.pack.add({ gh("stevearc/conform.nvim") })
-safe_setup("conform", function(result)
-  result.setup({
+safe_setup("conform", function(plugin)
+  plugin.setup({
     notify_on_error = false,
     format_on_save = function(bufnr)
       local disable_filetypes = { c = true, cpp = true }
@@ -427,7 +427,7 @@ safe_setup("conform", function(result)
     },
   })
   local format_code = function()
-    result.format({ async = true, lsp_format = "fallback" })
+    plugin.format({ async = true, lsp_format = "fallback" })
   end
   vim.keymap.set("", "<leader>f", format_code, { desc = "[F]ormat buffer" })
 end)
@@ -457,9 +457,9 @@ vim.pack.add({ gh("folke/lazydev.nvim") })
 vim.api.nvim_create_autocmd({ "FileType" }, {
   pattern = "lua",
   callback = function()
-    success, result = pcall(require, "lazydev")
+    success, plugin = pcall(require, "lazydev")
     if success then
-      result.setup({
+      plugin.setup({
         library = {
           -- Load luvit types when the `vim.uv` word is found
           { path = "${3rd}/luv/library", words = { "vim%.uv" } },
@@ -470,8 +470,8 @@ vim.api.nvim_create_autocmd({ "FileType" }, {
 })
 
 vim.pack.add({ { src = "https://github.com/saghen/blink.cmp", version = "v1.5.0" } })
-safe_setup("blink.cmp", function(result)
-  result.setup({
+safe_setup("blink.cmp", function(plugin)
+  plugin.setup({
     keymap = {
       preset = "default",
     },
@@ -504,8 +504,8 @@ vim.pack.add({
   "https://github.com/MunifTanjim/nui.nvim",
   "https://github.com/nvim-tree/nvim-web-devicons",
 })
-safe_setup("neo-tree", function(result)
-  result.setup({
+safe_setup("neo-tree", function(plugin)
+  plugin.setup({
     filesystem = {
       window = {
         mappings = {
@@ -519,16 +519,43 @@ end)
 vim.pack.add({
   { src = "https://github.com/romus204/tree-sitter-manager.nvim" },
 })
-safe_setup("tree-sitter-manager", function(result)
-  result.setup({
+safe_setup("tree-sitter-manager", function(plugin)
+  local ensure_installed = { "python", "typescript", "sql", "scss", "css", "html" }
+  local query_file_names = { "highlights.scm", "injections.scm", "folds.scm", "indents.scm", "locals.scm" }
+  plugin.setup({
     -- Default Options
-    ensure_installed = { "python", "typescript", "sql", "scss", "css", "html" }, -- list of parsers to install at the start of a neovim session. If set to "all", install all parsers.
+    ensure_installed = ensure_installed, -- list of parsers to install at the start of a neovim session. If set to "all", install all parsers.
     -- border = nil, -- border style for the window (e.g. "rounded", "single"), if nil, use the default border style defined by 'vim.o.winborder'. See :h 'winborder' for more info.
     -- auto_install = false, -- if enabled, install missing parsers when editing a new file
     highlight = true, -- treesitter highlighting is enabled by default
     -- languages = {}, -- override or add new parser sources
   })
+  local queries_dir = vim.fs.joinpath(vim.fn.stdpath("data"), "site", "queries")
+  for _, lang in ipairs(ensure_installed) do
+    local lang_dir = vim.fs.joinpath(queries_dir, lang)
+    if vim.uv.fs_stat(lang_dir) ~= nil then
+      for _, file_name in ipairs(query_file_names) do
+        local target_path = vim.fs.joinpath(lang_dir, file_name)
+        if vim.uv.fs_stat(target_path) == nil then
+          local possible_path = vim.fs.joinpath(lang_dir, "queries", file_name)
+          if vim.uv.fs_stat(possible_path) ~= nil then
+            vim.fn.filecopy(possible_path, target_path)
+          end
+        end
+      end
+    end
+  end
 end)
+
+vim.pack.add({ gh("YaroSpace/lua-console.nvim") })
+vim.api.nvim_create_autocmd({ "FileType" }, {
+  pattern = "lua",
+  callback = function()
+    safe_setup("lua-console", function(plugin)
+      plugin.setup({})
+    end)
+  end,
+})
 
 -- Add custom pulgins by modifying the runtime path.
 local nvimeap_path = vim.fn.expand("~/code/nvimeap")

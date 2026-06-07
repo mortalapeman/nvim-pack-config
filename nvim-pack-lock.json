@@ -21,6 +21,10 @@
       "rev": "ff2cbcba459b637ec3fd165a2be59b7bbaeedf0d",
       "src": "https://github.com/folke/lazydev.nvim"
     },
+    "lua-console.nvim": {
+      "rev": "9ce346626ef13b7123617587544fdf0f9f672002",
+      "src": "https://github.com/YaroSpace/lua-console.nvim"
+    },
     "mason-lspconfig.nvim": {
       "rev": "0a695750d747db1e7e70bcf0267ef8951c95fc83",
       "src": "https://github.com/mason-org/mason-lspconfig.nvim"

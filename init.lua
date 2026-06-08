@@ -54,7 +54,6 @@ vim.api.nvim_create_autocmd({ "BufEnter", "BufWinEnter" }, {
 local gh = function(relurl)
   return { src = "https://github.com/" .. relurl }
 end
-local packdir = vim.fn.stdpath("data") .. "/site/pack/core/opt/"
 
 local safe_setup = function(name, setup_fn, error_name)
   local success, plugin = pcall(require, name)
@@ -71,8 +70,8 @@ local function build_plugin(plugin_name, cmd)
     vim.notify("No plugin with name " .. plugin_name)
     return
   end
-  local spec = plugins[1].spec
-  local plugin_dir = spec.src
+  local plugin = plugins[1]
+  local plugin_dir = plugin.path
 
   local built_sentinel_file = vim.fs.joinpath(plugin_dir, ".built")
   if vim.uv.fs_stat(built_sentinel_file) ~= nil then

@@ -540,6 +540,7 @@ safe_setup("tree-sitter-manager", function(plugin)
           local possible_path = vim.fs.joinpath(lang_dir, "queries", file_name)
           if vim.uv.fs_stat(possible_path) ~= nil then
             vim.fn.filecopy(possible_path, target_path)
+            -- print("Copying " .. possible_path .. " to " .. target_path)
           end
         end
       end
@@ -634,14 +635,26 @@ vim.api.nvim_create_autocmd({ "VimEnter" }, {
         end,
         desc = "Sidekick Toggle Claude",
       },
+      {
+        "<tab>",
+        function()
+          if not require("sidekick").nes_jump_or_apply() then
+            return "<Tab>" -- fallback to normal tab
+          end
+        end,
+        expr = true,
+        desc = "Goto/Apply Next Edit Suggestion",
+      },
     }
     for _, km in ipairs(keymaps) do
       local lhs = km[1]
       local rhs = km[2]
       local mode = km.mode or { "" }
       local desc = km.desc
+      local expr = km.expr
       vim.keymap.set(mode, lhs, rhs, {
         desc = desc,
+        expr = expr,
       })
     end
   end,

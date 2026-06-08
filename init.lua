@@ -94,48 +94,50 @@ vim.pack.add({ gh("folke/which-key.nvim") })
 vim.api.nvim_create_autocmd({ "VimEnter" }, {
   desc = "Configure 'Which-Key' on VimEnter",
   callback = function()
-    require("which-key").setup({
-      delay = 0,
-      icons = {
-        mappings = vim.g.have_nerd_font,
-        keys = vim.g.have_nerd_font and {} or {
-          Up = "<Up> ",
-          Down = "<Down> ",
-          Left = "<Left> ",
-          Right = "<Right> ",
-          C = "<C-…> ",
-          M = "<M-…> ",
-          D = "<D-…> ",
-          S = "<S-…> ",
-          CR = "<CR> ",
-          Esc = "<Esc> ",
-          ScrollWheelDown = "<ScrollWheelDown> ",
-          ScrollWheelUp = "<ScrollWheelUp> ",
-          NL = "<NL> ",
-          BS = "<BS> ",
-          Space = "<Space> ",
-          Tab = "<Tab> ",
-          F1 = "<F1>",
-          F2 = "<F2>",
-          F3 = "<F3>",
-          F4 = "<F4>",
-          F5 = "<F5>",
-          F6 = "<F6>",
-          F7 = "<F7>",
-          F8 = "<F8>",
-          F9 = "<F9>",
-          F10 = "<F10>",
-          F11 = "<F11>",
-          F12 = "<F12>",
+    safe_setup("which-key", function(plugin)
+      plugin.setup({
+        delay = 0,
+        icons = {
+          mappings = vim.g.have_nerd_font,
+          keys = vim.g.have_nerd_font and {} or {
+            Up = "<Up> ",
+            Down = "<Down> ",
+            Left = "<Left> ",
+            Right = "<Right> ",
+            C = "<C-…> ",
+            M = "<M-…> ",
+            D = "<D-…> ",
+            S = "<S-…> ",
+            CR = "<CR> ",
+            Esc = "<Esc> ",
+            ScrollWheelDown = "<ScrollWheelDown> ",
+            ScrollWheelUp = "<ScrollWheelUp> ",
+            NL = "<NL> ",
+            BS = "<BS> ",
+            Space = "<Space> ",
+            Tab = "<Tab> ",
+            F1 = "<F1>",
+            F2 = "<F2>",
+            F3 = "<F3>",
+            F4 = "<F4>",
+            F5 = "<F5>",
+            F6 = "<F6>",
+            F7 = "<F7>",
+            F8 = "<F8>",
+            F9 = "<F9>",
+            F10 = "<F10>",
+            F11 = "<F11>",
+            F12 = "<F12>",
+          },
         },
-      },
 
-      spec = {
-        { "<leader>s", group = "[S]earch" },
-        { "<leader>t", group = "[T]oggle" },
-        { "<leader>h", group = "Git [H]unk", mode = { "n", "v" } },
-      },
-    })
+        spec = {
+          { "<leader>s", group = "[S]earch" },
+          { "<leader>t", group = "[T]oggle" },
+          { "<leader>h", group = "Git [H]unk", mode = { "n", "v" } },
+        },
+      })
+    end)
   end,
 })
 
@@ -179,6 +181,9 @@ vim.api.nvim_create_autocmd({ "VimEnter" }, {
           "/.git/",
           "^deps/",
           "/deps/",
+          "/node_modules/",
+          "/__pycache__/",
+          "/.venv/",
         },
       },
       extensions = {
@@ -457,15 +462,14 @@ vim.pack.add({ gh("folke/lazydev.nvim") })
 vim.api.nvim_create_autocmd({ "FileType" }, {
   pattern = "lua",
   callback = function()
-    success, plugin = pcall(require, "lazydev")
-    if success then
+    safe_setup("lazydev", function(plugin)
       plugin.setup({
         library = {
           -- Load luvit types when the `vim.uv` word is found
           { path = "${3rd}/luv/library", words = { "vim%.uv" } },
         },
       })
-    end
+    end)
   end,
 })
 

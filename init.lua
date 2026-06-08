@@ -65,6 +65,36 @@ local safe_setup = function(name, setup_fn, error_name)
   end
 end
 
+local function build_plugin(plugin_name, cmd)
+  local plugins = vim.pack.get({ plugin_name })
+  if #plugins == 0 then
+    vim.notify("No plugin with name " .. plugin_name)
+    return
+  end
+  local spec = plugins[1].spec
+  local plugin_dir = spec.src
+
+  local built_sentinel_file = vim.fs.joinpath(plugin_dir, ".built")
+  if vim.uv.fs_stat(built_sentinel_file) ~= nil then
+    return
+  end
+
+  local success, _ = pcall(function()
+    local obj = vim.system(cmd, { cwd = plugin_dir }):wait()
+    if obj.code ~= 0 then
+      vim.notify("Failed to run make in " .. plugin_dir, vim.log.levels.ERROR)
+    else
+      vim.notify("Built " .. plugin_name .. "!", vim.log.levels.INFO)
+      -- Create the built sentinel file
+      vim.system({ "touch", ".built" }, { cwd = plugin_dir }):wait()
+    end
+  end)
+
+  if not success then
+    vim.notify("Failed to build " .. plugin_name, vim.log.levels.ERROR)
+  end
+end
+
 vim.pack.add({ gh("folke/tokyonight.nvim") })
 safe_setup("tokyonight", function(plugin)
   plugin.setup({
@@ -148,29 +178,11 @@ vim.pack.add({
   gh("nvim-telescope/telescope-ui-select.nvim"),
   gh("nvim-tree/nvim-web-devicons"),
 })
-
-local success, _ = pcall(function()
-  local repo = packdir .. "telescope-fzf-native.nvim/"
-  local stat = vim.uv.fs_stat(repo .. ".built")
-  if stat == nil then
-    local obj = vim.system({ "make" }, { cwd = repo }):wait()
-    if obj.code ~= 0 then
-      vim.notify("Failed to run make in " .. repo, vim.log.levels.ERROR)
-    else
-      vim.notify("Built telescope-fzf-native.nvim!", vim.log.levels.INFO)
-      vim.system({ "touch", ".built" }, { cwd = repo }):wait()
-    end
-  end
-end)
-
-if not success then
-  vim.notify("Failed to build telescope-fzf-native.nvim", vim.log.levels.INFO)
-end
+build_plugin("telescope-fzf-native.nvim", { "make" })
 
 vim.pack.add({
   gh("nvim-telescope/telescope.nvim"),
 })
-
 vim.api.nvim_create_autocmd({ "VimEnter" }, {
   desc = "Startup for telescope",
   callback = function()
@@ -571,33 +583,25 @@ vim.api.nvim_create_autocmd({ "VimEnter" }, {
     local keymaps = {
       {
         "<c-.>",
-        function()
-          require("sidekick.cli").focus()
-        end,
+        require("sidekick.cli").focus,
         desc = "Sidekick Focus",
         mode = { "n", "t", "i", "x" },
       },
       {
         "<leader>aa",
-        function()
-          require("sidekick.cli").toggle()
-        end,
+        require("sidekick.cli").toggle,
         desc = "Sidekick Toggle CLI",
       },
       {
         "<leader>as",
-        function()
-          require("sidekick.cli").select()
-        end,
+        require("sidekick.cli").select,
         -- Or to select only installed tools:
         -- require("sidekick.cli").select({ filter = { installed = true } })
         desc = "Select CLI",
       },
       {
         "<leader>ad",
-        function()
-          require("sidekick.cli").close()
-        end,
+        require("sidekick.cli").close,
         desc = "Detach a CLI Session",
       },
       {
@@ -625,9 +629,7 @@ vim.api.nvim_create_autocmd({ "VimEnter" }, {
       },
       {
         "<leader>ap",
-        function()
-          require("sidekick.cli").prompt()
-        end,
+        require("sidekick.cli").prompt,
         mode = { "n", "x" },
         desc = "Sidekick Select Prompt",
       },
@@ -650,6 +652,7 @@ vim.api.nvim_create_autocmd({ "VimEnter" }, {
         desc = "Goto/Apply Next Edit Suggestion",
       },
     }
+
     for _, km in ipairs(keymaps) do
       local lhs = km[1]
       local rhs = km[2]

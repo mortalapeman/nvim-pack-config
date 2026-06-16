@@ -453,6 +453,7 @@ vim.api.nvim_create_autocmd({ "VimEnter" }, {
   desc = "Configure the mini library.",
   callback = function()
     require("mini.ai").setup({ n_lines = 500 })
+    require("mini.animate").setup()
     require("mini.surround").setup()
     require("mini.git").setup()
     require("mini.test").setup()
@@ -665,6 +666,8 @@ vim.api.nvim_create_autocmd({ "VimEnter" }, {
     end
   end,
 })
+
+vim.pack.add({ "https://github.com/kokusenz/deltaview.nvim" })
 
 -- Add custom pulgins by modifying the runtime path.
 local nvimeap_path = vim.fn.expand("~/code/nvimeap")

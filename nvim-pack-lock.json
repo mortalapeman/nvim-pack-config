@@ -9,6 +9,10 @@
       "rev": "619363c30309d29ffa631e67c8183f2a72caa373",
       "src": "https://github.com/stevearc/conform.nvim"
     },
+    "deltaview.nvim": {
+      "rev": "282ca6c6c47128af72a2a6de6fab419facde0f7b",
+      "src": "https://github.com/kokusenz/deltaview.nvim"
+    },
     "fidget.nvim": {
       "rev": "82404b196e73a00b1727a91903beef5ddc319d22",
       "src": "https://github.com/j-hui/fidget.nvim"

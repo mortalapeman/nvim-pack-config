@@ -457,6 +457,7 @@ vim.api.nvim_create_autocmd({ "VimEnter" }, {
     require("mini.surround").setup()
     require("mini.git").setup()
     require("mini.test").setup()
+    require("mini.pairs").setup()
 
     vim.keymap.set("n", "<leader>rt", ":lua MiniTest.run()<CR>", { desc = "Run all tests in current plugin." })
 
@@ -668,6 +669,25 @@ vim.api.nvim_create_autocmd({ "VimEnter" }, {
 })
 
 vim.pack.add({ "https://github.com/kokusenz/deltaview.nvim" })
+
+vim.pack.add({ gh("nvim-treesitter/nvim-treesitter-textobjects") })
+vim.api.nvim_create_autocmd({ "VimEnter" }, {
+  callback = function()
+    safe_setup("nvim-treesitter-textobjects", function(plugin)
+      plugin.setup({
+        select = {
+          lookahead = true,
+        },
+      })
+    end)
+    vim.keymap.set({ "x", "o" }, "am", function()
+      require("nvim-treesitter-textobjects.select").select_textobject("@function.outer", "textobjects")
+    end)
+    vim.keymap.set({ "x", "o" }, "im", function()
+      require("nvim-treesitter-textobjects.select").select_textobject("@function.inner", "textobjects")
+    end)
+  end,
+})
 
 -- Add custom pulgins by modifying the runtime path.
 local nvimeap_path = vim.fn.expand("~/code/nvimeap")

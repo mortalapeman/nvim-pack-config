@@ -208,6 +208,7 @@ vim.api.nvim_create_autocmd({ "VimEnter" }, {
 
     -- See `:help telescope.builtin`
     local builtin = require("telescope.builtin")
+    vim.keymap.set("n", "<leader>sb", builtin.buffers, { desc = "[S]earch [B]uffers" })
     vim.keymap.set("n", "<leader>sh", builtin.help_tags, { desc = "[S]earch [H]elp" })
     vim.keymap.set("n", "<leader>sk", builtin.keymaps, { desc = "[S]earch [K]eymaps" })
     vim.keymap.set("n", "<leader>sf", builtin.find_files, { desc = "[S]earch [F]iles" })
@@ -370,6 +371,7 @@ end)
 vim.pack.add({ gh("mason-org/mason-lspconfig.nvim") })
 local servers = {
   pyright = {},
+  clojure_lsp = {},
   -- Some languages (like typescript) have entire language plugins that can be useful:
   --    https://github.com/pmizio/typescript-tools.nvim
   --
@@ -410,6 +412,7 @@ safe_setup("mason-tool-installer", function(plugin)
   local ensure_installed = vim.tbl_keys(servers or {})
   vim.list_extend(ensure_installed, {
     "stylua", -- Used to format Lua code
+    "cljfmt", -- Used to format Clojure code
     "copilot",
   })
   plugin.setup({ ensure_installed = ensure_installed })
@@ -439,7 +442,9 @@ safe_setup("conform", function(plugin)
       lua = { "stylua" },
       python = { "isort", "black" },
       javascript = { "prettierd", "prettier", stop_after_first = true },
+      html = { "prettierd", "prettier", stop_after_first = true },
       typescript = { "prettierd", "prettier", stop_after_first = true },
+      clojure = { "cljfmt" },
     },
   })
   local format_code = function()
@@ -537,7 +542,7 @@ vim.pack.add({
   { src = "https://github.com/romus204/tree-sitter-manager.nvim" },
 })
 safe_setup("tree-sitter-manager", function(plugin)
-  local ensure_installed = { "python", "typescript", "sql", "scss", "css", "html" }
+  local ensure_installed = { "python", "typescript", "sql", "scss", "css", "html", "clojure" }
   local query_file_names = { "highlights.scm", "injections.scm", "folds.scm", "indents.scm", "locals.scm" }
   plugin.setup({
     -- Default Options
@@ -688,6 +693,16 @@ vim.api.nvim_create_autocmd({ "VimEnter" }, {
     end)
   end,
 })
+
+vim.pack.add({ gh("HiPhish/rainbow-delimiters.nvim") })
+vim.g.rainbow_delimiters = {
+  strategy = {
+    [""] = require("rainbow-delimiters").strategy.global,
+  },
+  query = {
+    [""] = "rainbow-delimiters",
+  },
+}
 
 -- Add custom pulgins by modifying the runtime path.
 local nvimeap_path = vim.fn.expand("~/code/nvimeap")

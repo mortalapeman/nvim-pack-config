@@ -542,7 +542,7 @@ vim.pack.add({
   { src = "https://github.com/romus204/tree-sitter-manager.nvim" },
 })
 safe_setup("tree-sitter-manager", function(plugin)
-  local ensure_installed = { "python", "typescript", "sql", "scss", "css", "html", "clojure" }
+  local ensure_installed = { "python", "typescript", "sql", "scss", "css", "html", "clojure", "kotlin" }
   local query_file_names = { "highlights.scm", "injections.scm", "folds.scm", "indents.scm", "locals.scm" }
   plugin.setup({
     -- Default Options
@@ -568,6 +568,13 @@ safe_setup("tree-sitter-manager", function(plugin)
       end
     end
   end
+  vim.api.nvim_create_autocmd({ "FileType" }, {
+    pattern = "kotlin",
+    callback = function()
+      vim.cmd([[hi! link @include Include]])
+      vim.cmd([[hi! link @namespace @namespace.builtin]])
+    end,
+  })
 end)
 
 vim.pack.add({ gh("YaroSpace/lua-console.nvim") })
@@ -703,6 +710,11 @@ vim.g.rainbow_delimiters = {
     [""] = "rainbow-delimiters",
   },
 }
+
+vim.pack.add({ gh("julienvincent/nvim-paredit") })
+safe_setup("nvim-paredit", function(plugin)
+  plugin.setup()
+end, "nvim-paredit")
 
 -- Add custom pulgins by modifying the runtime path.
 local nvimeap_path = vim.fn.expand("~/code/nvimeap")

@@ -26,6 +26,8 @@ vim.o.wrap = false
 
 vim.keymap.set("n", "<Esc>", "<cmd>nohlsearch<CR>")
 vim.keymap.set("n", "<leader>q", vim.diagnostic.setloclist, { desc = "Open diagnostic [Q]uickfix list" })
+vim.keymap.set("n", "<leader>cl", "<cmd>cnext<CR>", { desc = "Go to next quickfix item" })
+vim.keymap.set("n", "<leader>ch", "<cmd>cprevious<CR>", { desc = "Go to previous quickfix item" })
 vim.keymap.set("n", "<C-h>", "<C-w><C-h>", { desc = "Move focus to the left window" })
 vim.keymap.set("n", "<C-l>", "<C-w><C-l>", { desc = "Move focus to the right window" })
 vim.keymap.set("n", "<C-j>", "<C-w><C-j>", { desc = "Move focus to the lower window" })
@@ -715,6 +717,10 @@ vim.pack.add({ gh("julienvincent/nvim-paredit") })
 safe_setup("nvim-paredit", function(plugin)
   plugin.setup()
 end, "nvim-paredit")
+
+vim.lsp.config("copilot", {
+  filetypes = { "clojure", "kotlin", "python", "typescript", "javascript", "json", "lua" },
+})
 
 -- Add custom pulgins by modifying the runtime path.
 local nvimeap_path = vim.fn.expand("~/code/nvimeap")
